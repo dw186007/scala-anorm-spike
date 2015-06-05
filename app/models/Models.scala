@@ -1,8 +1,13 @@
 package models
 
-import anorm.{NotAssigned, Pk}
+import java.util.{Date}
+
+import play.api.db._
+import play.api.Play.current
+
 import anorm._
 import anorm.SqlParser._
+
 import scala.language.postfixOps
 
 case class Category(id : Pk[Long] = NotAssigned, name: String)
@@ -16,7 +21,7 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long){
   lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
 }
 
-object Computer {
+object Favorite {
 
   // Anorm Parsers
 
@@ -31,5 +36,20 @@ object Computer {
     }
 
   }
+
+  val withCategory = Favorite.simple ~ (Category.simple ?) map {
+    case favorite~company => (favorite,company)
+  }
+
+
+  // Queries
+
+  def findById(id: Long): Option[Favorite] = {
+    DB.withConnection { implicit connection =>
+      SQL("Select * from favorite where id = {id}").on('id -> id).as(Favorite.simple.singleOpt)
+
+    }
+  }
+
 
 }
