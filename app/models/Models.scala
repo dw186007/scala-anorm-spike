@@ -1,6 +1,12 @@
-import anorm.{NotAssigned, Pk}
+package models
 
-case class Favorite(id: Pk[Long] = NotAssigned, name: String, url: String )
+import anorm.{NotAssigned, Pk}
+import anorm._
+import anorm.SqlParser._
+import scala.language.postfixOps
+
+case class Category(id : Pk[Long] = NotAssigned, name: String)
+case class Favorite(id: Pk[Long] = NotAssigned, name: String, url: String, categoryId: Option[Long])
 
 /**
  * Helper for pagination
@@ -11,5 +17,19 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long){
 }
 
 object Computer {
-  
+
+  // Anorm Parsers
+
+  // This will parse a Favorite object from a ResultSet
+
+  val simple = {
+    get[Pk[Long]]("favorite.id") ~
+    get[String]("favorite.name") ~
+    get[String]("favorite.url") ~
+    get[Option[Long]]("favorite.categoryId") map {
+      case id~name~url~categoryId => Favorite(id, name, url, categoryId)
+    }
+
+  }
+
 }
