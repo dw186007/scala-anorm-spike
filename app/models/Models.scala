@@ -2,6 +2,7 @@ package models
 
 import java.util.{Date}
 
+import com.sun.xml.internal.bind.v2.TODO
 import play.api.db._
 import play.api.Play.current
 
@@ -38,7 +39,7 @@ object Favorite {
   }
 
   val withCategory = Favorite.simple ~ (Category.simple ?) map {
-    case favorite~company => (favorite,company)
+    case favorite~category => (favorite,category)
   }
 
 
@@ -47,6 +48,43 @@ object Favorite {
   def findById(id: Long): Option[Favorite] = {
     DB.withConnection { implicit connection =>
       SQL("Select * from favorite where id = {id}").on('id -> id).as(Favorite.simple.singleOpt)
+
+    }
+  }
+
+  /* Returns a page of Favorite/Category */
+
+  def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Favorite, Option[Category])] = {
+    val offset = pageSize * page
+
+    DB.withConnection { implicit connection =>
+
+      val favorites = SQL(
+        """
+          select * from favorite
+          left join category on favorite.category_id = category.id
+          where favorite.name like {filter}
+          order by {orderBy} nulls last
+          limit {pageSize} offset {offset}
+        """
+      ).on(
+          'pageSize -> pageSize,
+          'offset -> offset,
+          'filter -> filter,
+          'orderBy -> orderBy
+        ).as(Favorite.withCategory *)
+
+      val totalRows = SQL(
+        """
+          select count(*) from favorite
+          left join category on favorite.category_id = category.id
+          where favorite.name like {filter}
+        """
+      ).on(
+          'filter -> filter
+        ).as(scalar[Long].single)
+
+      Page(favorites, page, offset, totalRows)
 
     }
   }
