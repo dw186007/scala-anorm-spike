@@ -89,5 +89,45 @@ object Favorite {
     }
   }
 
+  def update(id: Long, favorite: Favorite) = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          update favorite
+          set name = {name}, url = {url}, categoryId = {category_id}
+          where id = {id}
+        """
+      ).on(
+          'id -> id,
+          'name -> favorite.name,
+          'url -> favorite.url,
+          'category_id -> favorite.categoryId
+        ).executeUpdate()
+    }
+  }
+
+  def insert(favorite: Favorite) = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          insert into favorite values (
+            (select next value for favorite_seq),
+            {name}, {url}, {categoryId}
+          )
+        """
+      ).on(
+          'name -> favorite.name,
+          'url -> favorite.url,
+          'categoryId -> favorite.categoryId
+        ).executeUpdate()
+    }
+  }
+
+  def delete(id: Long) = {
+    DB.withConnection { implicit connection =>
+      SQL("delete from favorite where id = {id}").on('id -> id).executeUpdate()
+    }
+  }
+
 
 }
