@@ -1,0 +1,35 @@
+@(favoriteForm: Form[Favorite], categories: Seq[(String, String)])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main {
+
+    <h1>Add a website</h1>
+
+    @form(routes.Application.save()) {
+
+        <fieldset>
+
+            @inputText(favoriteForm("name"), '_label -> "Favorite name")
+            @inputText(favoriteForm("url"), '_label -> "url")
+
+            @select(
+                favoriteForm("favorite"),
+                categories,
+                '_label -> "Category", '_default -> "-- Choose a category --",
+                '_showConstraints -> false
+            )
+
+
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Add this website" class="btn primary"> or
+            <a href="@routes.Application.list()" class="btn">Cancel</a>
+        </div>
+
+    }
+
+}
