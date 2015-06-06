@@ -129,5 +129,24 @@ object Favorite {
     }
   }
 
-
 }
+
+object Category {
+
+  /* Category parser */
+  val simple = {
+    get[Pk[Long]]("category.id") ~
+    get[String]("category.name") map {
+      case id~name => Category(id, name)
+    }
+  }
+
+  def options: Seq[(String,String)] = DB.withConnection { implicit connection =>
+    SQL("select * from category order by name").as(Category.simple *).map(c => c.id.toString -> c.name)
+  }
+}
+
+
+
+
+
